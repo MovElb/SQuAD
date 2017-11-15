@@ -59,7 +59,7 @@
 # 4. Train linear model one more time and plot results again.
 # 5. What happens if you add more features, for example full range $x^{0},\dots,x^{7}$? 
 
-# In[199]:
+# In[205]:
 
 
 get_ipython().magic('matplotlib inline')
@@ -67,32 +67,24 @@ get_ipython().magic('matplotlib inline')
 import numpy as np
 from numpy.linalg import inv
 
+from scipy.optimize import minimize
+
+import matplotlib
 import matplotlib.pyplot as plt
+matplotlib.rcParams['figure.figsize'] = '10,8'
+
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score as accuracy
 
 PI = np.pi
 
 
-# In[200]:
+# In[206]:
 
 
 def lin_regression(X, y):
     return inv(X.T.dot(X)).dot(X.T.dot(y))
-
-
-X_train = X = np.linspace(0, 2 * PI, 20).reshape(-1, 1)
-y_train = np.sin(X_train) + np.random.normal(0, 0.1, size=(20, 1))
-
-w = lin_regression(X_train, y_train)
-y_pred = w * X_train
-
-plt.plot(X, y_train, label='train')
-plt.plot(X, y_pred, label='predicted')
-plt.legend()
-plt.show()
-
-
-# In[201]:
-
 
 def poly(X, deg_list):
     deg = max(deg_list)
@@ -106,30 +98,51 @@ def poly(X, deg_list):
         X_cp = np.concatenate((X**i, X_cp), axis=1)
     return (X_cp[:, deg * np.ones(num_deg, dtype=int) - np.asarray(deg_list)])[:, ::-1]
 
-X_train = poly(X, list(range(1, 4)))
+
+X = np.linspace(0, 2 * PI, 20).reshape(-1, 1)
+X_train = poly(X, list(range(2)))
+noise = np.random.normal(0, 0.1, size=(20, 1))
+y_train = np.sin(X) + noise
+
 w = lin_regression(X_train, y_train)
 y_pred = X_train.dot(w)
 
-plt.plot(X, y_train, label='train')
-plt.plot(X, y_pred, label='predicted')
+plt.scatter(X, y_train, label='train')
+plt.plot(X, y_pred, 'r', label='predicted')
 plt.legend()
+plt.grid()
 plt.show()
 
 
-# In[202]:
+# In[207]:
+
+
+X_train = poly(X, list(range(4)))
+w = lin_regression(X_train, y_train)
+y_pred = X_train.dot(w)
+
+plt.scatter(X, y_train, label='train')
+plt.plot(X, y_pred, 'r', label='predicted')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# In[208]:
 
 
 X_train = poly(X, list(range(7)))
 w = lin_regression(X_train, y_train)
 y_pred = X_train.dot(w)
 
-plt.plot(X, y_train, label='train')
-plt.plot(X, y_pred, label='predicted')
+plt.scatter(X, y_train, label='train')
+plt.plot(X, y_pred, 'r', label='predicted')
 plt.legend()
+plt.grid()
 plt.show()
 
 
-# As can be seen, adding more features gives us higher precision. (However, it can't last forever. Also out tests are based on training set.)
+# As can be seen, adding more features gives us higher precision. (However, it can't last forever. Also our tests are based only on the training set, so they can't be really unbiased.)
 
 # ### 3. Validation
 # The data used to build the final model usually comes from multiple datasets. In particular, three data sets are commonly used in different stages of the creation of the model.
@@ -156,20 +169,22 @@ plt.show()
 # 3. Have you experienced [overfitting](https://en.wikipedia.org/wiki/Overfitting)?
 # 4. Please, read [this article](https://en.wikipedia.org/wiki/VC_dimension) to learn more about model capacity and VC-dimension.
 
-# In[204]:
+# In[209]:
 
 
-X_valid = poly(np.random.uniform(0, 2 * PI, size=(20, 1)), list(range(7)))
-y_pred_val = X_valid.dot(w)
+def MSE(y_pred, y_stand):
+    return ((y_pred - y_stand)**2).mean()
 
-plt.plot(X, y_train, label='train')
-plt.plot(X, y_pred, label='prediction on train')
-plt.plot(X, y_pred_val, label='prediction on validation')
-plt.legend()
-plt.show()
+X_valid = np.random.uniform(0, 2 * PI, size=(20, 1))
+X_valid_poly = poly(X_valid, list(range(7)))
+y_valid = np.sin(X_valid) + noise
+y_pred_val = X_valid_poly.dot(w)
+
+print("MSE on train set is %f"%MSE(y_pred, y_train))
+print("MSE on validation set is %f"%MSE(y_pred_val, y_valid))
 
 
-# It's clear, that our model was overfitted, because precision level is almost zero.
+# It's clear, that our model is overfitted, because MSE is much higher than MSE on train set.
 
 # ### 4. Binary linear classification
 # Let $\mathbb{Y} = \{-1, +1\}$ for binary classification. So linear model looks like
@@ -189,8 +204,8 @@ plt.show()
 # 3. Logistic loss function has a probabilistic meaning. In particular, this loss leads us to the optimal [Bayesian classifier](https://en.wikipedia.org/wiki/Naive_Bayes_classifier) under certain assumptions on the distribution of features. But it's a different story. So it is often used in practice.
 # $$\ln \big( 1 + \exp(-yw^Tx) \big)$$
 
-# #### Exercises
-# 1. Let $\mathbb{P}\{y=1|x\} = \sigma(wx)$, where $\sigma(z) = \frac{1}{1 + \exp(-z)}$. Show that problem below it is nothing like the maximization of the likelihood.
+# # Exercises
+# 1. Let $\mathbb{P}\{y=1|x\} = \sigma(w^T x)$, where $\sigma(z) = \frac{1}{1 + \exp(-z)}$. Show that problem below it is nothing like the maximization of the likelihood.
 # $$\arg\min_{w}Q(w) = \arg\min_{w} \sum_{x, y} \ln \big(1 + \exp(-yw^Tx )) \big)$$
 # 2. Plot all loss functions in the axes $M \times L$.
 # 3. Generate two normally distributed sets of points on the plane.
@@ -198,6 +213,60 @@ plt.show()
 # 5. Train linear classifier with MSE (use analytical solution), which splits these sets.
 # 6. Plot points and separating line of trained classifier.
 # 7. What is time comlexity of your solution?
+
+# First of all, it's pretty clear that $\mathbb{P}(y = -1 | x) = \sigma(-w^Tx)$(it is just 1 - $\mathbb{P}(y = 1 | x))$. We assume that $\mathcal{L}(w\ |\ X) = \mathbb{P}(y\ |\ X)$, where $y \in \mathbb{R}^n, X \in \mathbb{R}^{m \times n}$, moreover, all of $X_i$ are indepedent. Hence,
+# $$\arg \max \limits_{w} \mathcal{L}(w\ |\ X) = \arg \max \limits_{w} \mathbb{P}(y\ |\ X) = \arg \max \limits_{w} \prod \limits_{i = 1}^{n} \mathbb{P}(y_i\ |\ X_i) = \arg \max \limits_{w} \ln \prod \limits_{i = 1}^{n} \mathbb{P}(y_i\ |\ X_i) =$$
+# Last equality follows from monotone of logarithm.
+# $$= \arg \max \limits_{w} \sum \limits_{y_i, X_i} \ln \mathbb{P}(y_i\ |\ X_i) = \arg \max \limits_{w} \sum \limits_{y_i, X_i} \ln ((1 + \exp(-yw^Tx))^{-1}) = -\arg \max \limits_{w} \sum \limits_{y_i, X_i} \ln (1 + \exp(-yw^Tx)) = \arg \min \limits_{w} \sum \limits_{y_i, X_i} \ln (1 + \exp(-yw^Tx))$$
+
+# In[210]:
+
+
+M = np.linspace(-2, 2, 800)
+plt.plot(M, 400 * [1] + 400 * [0], label="$M < 0$")
+plt.plot(M, (1 - M)**2, label="$(1 - M)^2$")
+plt.plot(M, np.max([np.zeros(800), 1 - M], axis=0), label="$\max(0, 1-M)$")
+plt.plot(M, np.log(1 + np.exp(-M)) / np.log(2), label="$\ln(1 + \exp(-M)) / \ln2$")
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# In[211]:
+
+
+blob_1 = np.random.normal([10, 10], 7, size=(100, 2))
+blob_2 = np.random.normal([-10, -10], 7, size=(100, 2))
+plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
+plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b')
+plt.grid()
+plt.show()
+
+
+# In[212]:
+
+
+X_train = np.concatenate((blob_1, blob_2), axis=0)
+X_train = np.concatenate((X_train, np.ones((200, 1))), axis=1)
+y_train = np.concatenate((np.ones((100, 1)), -1 * np.ones((100, 1))), axis=0)
+
+w = lin_regression(X_train, y_train)
+a, b, c = w[0], w[1], w[2]  # ax + by + c = 0
+x = np.linspace(-25, 25, 100)
+y = (-a * x - c) / b
+
+plt.plot(x, y, 'g')
+plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
+plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b')
+plt.grid()
+plt.show()
+
+
+# Let's find the complexity of the solution. We assume $m$ is the number of points, $n$ is the dimension of vector 
+# space.
+# For finding the solution we need to compute following expression: $(X^T X)^{-1} X^T Y$.
+# Computing $X^TX$ takes $O(m^2n)$. Inverting $X^TX$ using Gauss algorithm is $O(n^3)$, because this is a square matrix.
+# Multiplying $X^TX \cdot X$ is $O(mn^2)$ and, finally, multiplying by Y takes $O(nm)$. In summary, $$O(m^2n + n^3 + mn^2 + mn) = O(mn^2 + n^3 + m^2n) = O(mn^2 + n^3)$$
 
 # ### 5. Gradient descent
 # Gradient descent is a first-order iterative optimization algorithm for finding the minimum of a function. To find a local minimum of a function using gradient descent, one takes steps proportional to the negative of the gradient of the function at the current point. Gradient descent is based on the observation that if function $Q(x)$ is defined and differentiable in a neighborhood of a point $x$, then $Q(x)$ decreases fastest if one goes from $x$  in the direction of the negative gradient.
@@ -214,6 +283,56 @@ plt.show()
 # 5. How do you choose $\lambda$?
 # 6. Evaluate time complexity of solution.
 
+# We will use  $f(x, y) = 5(x - 2)^2 + 4(y + 5)^2$ with minumum in $(2, 5)$.
+
+# In[213]:
+
+
+def naive_grad_descent(func, 
+                       deriv, 
+                       start_pnt, 
+                       lmbda, 
+                       max_step=1e5,
+                       eps=10e-15):
+    
+    points = []
+    pnt = start_pnt
+    points.append(np.copy(pnt))
+
+    step = 0
+    while (step == 0 or abs(func(*points[-1]) - func(*points[-2])) >= eps) and step <= max_step:
+        step += 1
+        l = lmbda(step)
+        pnt -= l * deriv(*pnt)
+        points.append(np.copy(pnt))
+
+    return pnt, np.asarray(points)
+
+
+# In[214]:
+
+
+f = lambda x, y: 5 * (x - 2)**2 + 4 * (y + 5)**2
+df = lambda x, y: np.asarray([10 * (x - 2), 8 * (y + 5)])
+
+min_pnt, trace = naive_grad_descent(f, 
+                                    df, 
+                                    start_pnt=np.random.uniform(0, 5, size=(2,)), 
+                                    lmbda=lambda step: 0.05)
+
+print("f_min = %f in (%f, %f)"%(f(*min_pnt), *min_pnt))
+
+x = np.arange(-7, 7, 0.25)
+y = np.arange(-7, 7, 0.25)
+x, y = np.meshgrid(x, y)
+z = f(x, y)
+plt.contourf(x, y, z, 30)
+plt.plot(trace[:, 0], trace[:, 1], 'r-o')
+plt.show()
+
+
+# $\lambda$ was chosen as small constant $0.02$, because other methods of choosing(e.g. $2^{-step}, \frac{1}{step}$) showed lower results, moreover, constant method converged in all tests.
+
 # There is category of function which naive gradient descent works poorly for, e.g. [Rosenbrock function](https://en.wikipedia.org/wiki/Rosenbrock_function).
 # $$f(x, y) = (1-x)^2 + 100(y-x^2)^2.$$
 # 
@@ -221,6 +340,42 @@ plt.show()
 # 1. Repeat previous steps for Rosenbrock function.
 # 2. What problem do you face?
 # 3. Is there any solution?
+
+# In[215]:
+
+
+f_rosen = lambda x, y: (1 - x)**2 + 100 * (y - x**2)**2
+df_rosen = lambda x, y: np.asarray([-2 * (1 - x) - 400 * (y - x**2) * x, 200 * (y - x**2)])
+
+
+# In[216]:
+
+
+min_pnt_rosen, trace_rosen = naive_grad_descent(f_rosen, 
+                                                df_rosen, 
+                                                start_pnt=np.random.uniform(0, 8, size=(2,)), 
+                                                lmbda=lambda step: 0.00002, 
+                                                max_step=2 * 1e5,
+                                                eps=1e-8)
+
+print("f_min = %f in (%f, %f)"%(f_rosen(*min_pnt_rosen), *min_pnt_rosen))
+
+
+# In[217]:
+
+
+x = np.arange(0, 10, 0.25)
+y = np.arange(0, 10, 0.25)
+x, y = np.meshgrid(x, y)
+z = f_rosen(x, y)
+plt.contourf(x, y, z, 30)
+plt.plot(trace_rosen[:, 0], trace_rosen[:, 1], 'r-o')
+plt.show()
+
+print("It took algorithm %d steps to reach point (%f, %f)"%(trace_rosen.shape[0], *min_pnt_rosen))
+
+
+# Main feature of this function is very gentle slope in the neighbourhood of $(1, 1)$ and steep slope outside of it. That's why it takes a lot of iteration to get high precision. Probable solution may be changing $\lambda$ depending on the slope of gradient vector. 
 
 # There are some variations of the method, for example steepest descent, where we find optimal $\lambda$ for each step.
 # $$\lambda^{k} = \arg\min_{\lambda}Q(x_k - \lambda\triangledown Q(x_k)).$$
@@ -230,6 +385,149 @@ plt.show()
 # 2. Plot your splitting line. Compare with analytical solution.
 # 3. Try steepest descent.
 # 4. Comare gradient descent methods and show its convergence in axes $[step \times Q]$.
+
+# In[218]:
+
+
+N_POINTS = 500
+blob_1 = np.random.normal(-1, 1, size=(N_POINTS, 2))
+blob_2 = np.random.normal(2, 1, size=(N_POINTS, 2))
+
+X_train = np.concatenate((blob_1, blob_2), axis=0)
+X_train = np.concatenate((X_train, np.ones((2 * N_POINTS, 1))), axis=1)
+y_train = np.concatenate((np.ones((N_POINTS, 1)), -1 * np.ones((N_POINTS, 1))), axis=0)
+
+
+# In[219]:
+
+
+plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
+plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b')
+plt.grid()
+plt.show()
+
+
+# In[220]:
+
+
+w = lin_regression(X_train, y_train)
+a, b, c = w[0], w[1], w[2]  # ax + by + c = 0
+x = np.linspace(-3, 3, 100)
+y_an_mse = (-a * x - c) / b
+
+
+# In[221]:
+
+
+def gen_mse(X_train, y_train):
+    return lambda a, b, c: ((X_train.dot(np.asarray([a, b, c])).reshape(2 * N_POINTS, 1) - y_train)**2).mean()
+
+
+def gen_gr_mse(X, y):
+    return lambda a, b, c: 2 * X.T.dot((X.dot(np.asarray([a, b, c])).reshape(2 * N_POINTS, 1) - y)).reshape(3,)
+
+
+f_mse = gen_mse(X_train, y_train)
+df_mse = gen_gr_mse(X_train, y_train)
+
+
+# In[222]:
+
+
+min_pnt_mse, trace_mse = naive_grad_descent(f_mse, 
+                                            df_mse, 
+                                            start_pnt=10 * np.random.randn(3), 
+                                            lmbda=lambda step: 1e-4, 
+                                            max_step=150,
+                                            eps=1e-3)
+
+print("f_min = %f in (%f, %f, %f)"%(f_mse(*min_pnt_mse), *min_pnt_mse))
+
+
+# In[223]:
+
+
+a_gr, b_gr, c_gr, = min_pnt_mse
+y_gr_mse = (-a_gr * x - c_gr) / b_gr
+
+plt.plot(x, y_an_mse, 'y', label='Analytical solution')
+plt.plot(x, y_gr_mse, 'g', label='Naive gradient solution')
+
+plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
+plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b')
+
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# In[224]:
+
+
+def fast_grad(func, 
+              deriv, 
+              start_pnt, 
+              max_step=1e5,
+              eps=10e-15):
+    
+    points = []
+    pnt = start_pnt
+    points.append(np.copy(pnt))
+
+    step = 0
+    while (step == 0 or abs(func(*points[-1]) - func(*points[-2])) >= eps) and step <= max_step:
+        step += 1
+        drv = deriv(*pnt)
+        l = minimize(lambda l: func(*(pnt - l * drv)), x0=0).x
+        pnt -= l * drv
+        points.append(np.copy(pnt))
+
+    return pnt, np.asarray(points)
+
+
+# In[225]:
+
+
+min_pnt_fast, trace_fast = fast_grad(f_mse, 
+                                     df_mse, 
+                                     start_pnt=10 * np.random.randn(3), 
+                                     max_step=150,
+                                     eps=1e-3)
+
+
+# In[226]:
+
+
+a_fast, b_fast, c_fast = min_pnt_mse
+y_gr_fast = (-a_fast * x - c_fast) / b_fast
+
+plt.plot(x, y_an_mse, 'y', label='Analytical')
+plt.plot(x, y_gr_mse, 'g', label='Naive gradient')
+plt.plot(x, y_gr_fast, 'b', label='Steepest gradient')
+
+plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
+plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b')
+
+plt.legend()
+plt.show()
+
+
+# As we see perfomance of steepest descent has the same precision as analytical solution, however naive gradient descent is less precise.
+
+# In[227]:
+
+
+f_mse_val = list(map(lambda pnt: f_mse(*pnt), trace_mse))
+f_fast_val = list(map(lambda pnt: f_mse(*pnt), trace_fast))
+
+plt.plot(range(trace_mse.shape[0]), f_mse_val, label='Naive gradient')
+plt.plot(range(trace_fast.shape[0]), f_fast_val, label='Steepest gradient')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# Not only is steepest gradient is more precise, moreover, its convergence takes less steps(e.g. in our example five times less).
 
 # ### 6. Stochastic gradient descent
 
@@ -244,6 +542,148 @@ plt.show()
 # 6. How many epochs you use? Why?
 # 7. Plot value of loss function for each step (try use [exponential smoothing](https://en.wikipedia.org/wiki/Exponential_smoothing)).
 
+# In[228]:
+
+
+data = np.loadtxt("../train.csv", delimiter=',', skiprows=1)
+
+
+# In[229]:
+
+
+data_0_1 = data[data[:, 0] < 2, :]
+data_0_1[data_0_1[:, 0] < 1, 0] = -1
+data_0_1 = np.concatenate((data_0_1, np.ones((data_0_1.shape[0], 1))), axis=1)
+data_0_1 = data_0_1.astype(np.float128)
+dig_X_train, dig_X_test, dig_y_train, dig_y_test = train_test_split(data_0_1[:, 1:],
+                                                                    data_0_1[:, 0],
+                                                                    test_size=0.15, 
+                                                                    random_state=42)
+
+
+# In[230]:
+
+
+def log_loss(X, y, w):
+    return sum(np.log(1 + np.exp(-y[i] * X[i].dot(w))) for i in range(X.shape[0])) / X.shape[0]
+
+
+def log_deriv(X, y, w):
+    grad = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        deg = -y[i] * np.dot(X[i], w)
+        grad[i] = -y[i] * X[i] * (np.exp(deg) / (1 + np.exp(deg)))
+    grad = np.sum(grad, axis=0) / X.shape[0]
+    return grad.reshape(-1, 1)
+
+
+def sgd(func, grad, start_pnt, X, y, lmbda, batch_size=1, max_step=1e3, eps=1e-12):
+    pnt = np.copy(start_pnt)
+    points = []
+    points.append(np.copy(start_pnt))
+    it_per_batch = X.shape[0] // batch_size
+    
+    step = 0
+    while (step == 0 or abs(func(X, y, points[-1]) - func(X, y, points[-2])) >= eps) and step <= max_step:
+        for j in range(it_per_batch):
+            if not ((step == 0 or abs(func(X, y, points[-1]) - func(X, y, points[-2])) >= eps) and step <= max_step):
+                break
+            step += 1
+            X_tmp = X[j * batch_size: (j + 1) * batch_size]
+            y_tmp = y[j * batch_size: (j + 1) * batch_size]
+            gr = grad(X_tmp, y_tmp, pnt)
+            pnt -= lmbda * gr
+            points.append(np.copy(pnt))
+            
+    return pnt, np.array(points)
+
+
+def classify(X, w):
+    return np.sign(X.dot(w))
+
+
+# In[231]:
+
+
+min_sgd, trace_sgd = sgd(log_loss, 
+                         log_deriv,
+                         np.zeros((dig_X_train.shape[1], 1)),
+                         dig_X_train,
+                         dig_y_train,
+                         1e-2,
+                         batch_size=1000,
+                         max_step=30)
+
+
+# In[234]:
+
+
+print("Accuracy on train %f"%accuracy(classify(dig_X_train, min_sgd), dig_y_train))
+print("Accuracy on test %f"%accuracy(classify(dig_X_test, min_sgd), dig_y_test))
+
+
+# In[235]:
+
+
+step_num = []
+accur_p_batch = []
+for sz in range(1, dig_X_train.shape[0], 100):
+    min_sgd, trace_sgd = sgd(log_loss, 
+                             log_deriv, 
+                             np.zeros((dig_X_train.shape[1], 1)),
+                             dig_X_train,
+                             dig_y_train,
+                             1e-2,
+                             batch_size=sz,
+                             max_step=10)
+    step_num.append(trace_sgd.shape[0])
+    accur_p_batch.append(accuracy(classify(dig_X_test, min_sgd), dig_y_test))
+
+
+# In[236]:
+
+
+plt.plot(range(101, dig_X_train.shape[0], 100), step_num[1:], 'r-')
+plt.xlabel("Batch size", fontsize=13)
+plt.ylabel("Steps", fontsize=13)
+plt.grid()
+plt.show()
+
+
+# In[237]:
+
+
+plt.plot(range(1, dig_X_train.shape[0], 100), accur_p_batch, 'b')
+plt.xlabel("Batch size", fontsize=13)
+plt.ylabel("Accuracy", fontsize=13)
+plt.grid()
+plt.show()
+
+
+# In[238]:
+
+
+min_sgd, trace_sgd = sgd(log_loss, 
+                         log_deriv,
+                         np.zeros((dig_X_train.shape[1], 1)),
+                         dig_X_train,
+                         dig_y_train,
+                         1e-2,
+                         batch_size=200,
+                         max_step=10)
+
+log_vals = list(map(lambda pnt: log_loss(dig_X_train, dig_y_train, pnt), trace_sgd))
+
+
+# In[239]:
+
+
+plt.plot(log_vals, 'r')
+plt.xlabel("Steps", fontsize=13)
+plt.ylabel("Loss", fontsize=13)
+plt.grid()
+
+
 # #### Momentum method
 # Stochastic gradient descent with momentum remembers the update of $x$ at each iteration, and determines the next update as a linear combination of the gradient and the previous update
 # $$x^{k+1} = x^{k} - s^{k},$$ where $s^k = \gamma s^{k-1} + \lambda\triangledown Q(x^k)$, $0 <\gamma < 1$ – smoothing ratio and $s^{-1} = 0$.
@@ -253,7 +693,70 @@ plt.show()
 # 2. Use momentum method and compare pathes.
 # 3. How do you choose $\gamma$?
 
-# #### Nesterov accelerated gradient
+# In[120]:
+
+
+def grad_momentum(func, 
+                  deriv, 
+                  start_pnt, 
+                  lmbda, 
+                  gamma, 
+                  max_step=1e5, 
+                  eps=10e-15):
+    pnt = np.copy(start_pnt)
+    points = [np.copy(start_pnt)]
+    
+    step = 0
+    s = np.zeros(start_point.shape[0])
+    while (step == 0 or abs(func(*points[-1]) - func(*points[-2])) >= eps) and step <= max_step:
+        step += 1
+        s = gamma * s + lmbda(step) * deriv(*pnt)
+        pnt -= s
+        points.append(np.copy(pnt))
+    return pnt, np.asarray(points)
+
+
+# In[121]:
+
+
+def quadratic(x, y):
+    return 10 * x**2 + y**2
+
+
+def grad_quadr(x, y):
+    return np.asarray([20 * x, 2 * y])
+
+
+# In[145]:
+
+
+x = y = np.linspace(-15, 15, 1000)
+xx, yy = np.meshgrid(x, y)
+f = quadratic(xx, yy)
+
+start_point = np.asarray([-7.35532, 9.34234])
+
+min_moment, trace_moment = grad_momentum(quadratic,
+                                         grad_quadr,
+                                         np.copy(start_point),
+                                         lambda step: 1e-2,
+                                         0.8)
+
+min_nve, trace_nve = naive_grad_descent(quadratic, 
+                                        grad_quadr, 
+                                        np.copy(start_point),
+                                        lambda step: 1e-2)
+
+plt.contourf(xx, yy, f, 30)
+plt.plot(trace_nve[:, 0], trace_nve[:, 1], 'r-o', label='Naive gradient')
+plt.plot(trace_moment[:, 0], trace_moment[:, 1], 'g-o', label='Momenthum method')
+plt.legend()
+plt.show()
+
+
+# I looked at all $\gamma$ in $(0, 1)$ with step $0.1$, then depending on number of steps found minimal $\gamma$. Then I searched for more accurate value in the neighbourhood of minimal $\gamma$ from previous step.
+
+# ## Nesterov accelerated gradient
 # And the logical development of this approach leads to the accelerated Nesterov's gradient. The descent step is calculated a little differently
 # $$s^k = \gamma s^{k-1} + \lambda\triangledown Q(x^k - \gamma s^{k-1}),$$
 # so we find gradient at the point which moment will move us.
@@ -261,6 +764,70 @@ plt.show()
 # #### Еxercises
 # 1. Compare this method and previous with Rosenbrock function.
 # 2. Plot traces of both algorithms.
+
+# In[144]:
+
+
+def grad_nesterov(func, 
+                  deriv, 
+                  start_pnt, 
+                  lmbda, 
+                  gamma, 
+                  max_step=1e5, 
+                  eps=10e-15):
+    pnt = np.copy(start_pnt)
+    points = [np.copy(start_pnt)]
+    
+    step = 0
+    s = np.zeros(start_point.shape[0])
+    while (step == 0 or abs(func(*points[-1]) - func(*points[-2])) >= eps) and step <= max_step:
+        step += 1
+        s = gamma * s + lmbda(step) * deriv(*(pnt - gamma * s))
+        pnt -= s
+        points.append(np.copy(pnt))
+    return pnt, np.asarray(points)
+
+
+# In[191]:
+
+
+start_point = np.random.randn(2) * 10
+
+min_mom_ros, trace_mom_ros = grad_momentum(f_rosen,
+                                           df_rosen,
+                                           np.copy(start_point),
+                                           lambda step: 0.00002,
+                                           0.91)
+
+min_nest_ros, trace_nest_ros = grad_nesterov(f_rosen,
+                                             df_rosen,
+                                             np.copy(start_point),
+                                             lambda step: 0.00002,
+                                             0.91)
+
+x = y = np.linspace(-10, 10, 1000)
+xx, yy = np.meshgrid(x, y)
+f = f_rosen(xx, yy)
+
+plt.contourf(xx, yy, f, 30)
+plt.plot(trace_mom_ros[:, 0], trace_mom_ros[:, 1], 'r-o', label='Momenthum')
+plt.plot(trace_nest_ros[:, 0], trace_nest_ros[:, 1], 'g-o', label='Nesterov')
+plt.legend()
+plt.show()
+
+
+# In[197]:
+
+
+OFFSET = 1000
+
+plt.plot(range(trace_mom_ros.shape[0])[OFFSET:],          list(map(lambda p: f_rosen(*p), trace_mom_ros))[OFFSET:], 'r', label='Momenthum')
+
+plt.plot(range(trace_nest_ros.shape[0])[OFFSET:],          list(map(lambda p: f_rosen(*p), trace_nest_ros))[OFFSET:], 'b', label='Nesterov')
+plt.grid()
+plt.legend()
+plt.show()
+
 
 # #### Adagrad (2011)
 # Adaptive gradient finds lambda for each dimension of the input vector x. Informally speaking, for sparce features it makes a bigger step, but for regular ones smaller step.
