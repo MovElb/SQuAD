@@ -59,10 +59,12 @@
 # 4. Train linear model one more time and plot results again.
 # 5. What happens if you add more features, for example full range $x^{0},\dots,x^{7}$? 
 
-# In[668]:
+# In[109]:
 
 
 get_ipython().magic('matplotlib inline')
+
+from IPython.display import clear_output
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -81,7 +83,7 @@ from sklearn.metrics import accuracy_score as accuracy
 PI = np.pi
 
 
-# In[575]:
+# In[2]:
 
 
 def lin_regression(X, y):
@@ -115,7 +117,7 @@ plt.grid()
 plt.show()
 
 
-# In[576]:
+# In[3]:
 
 
 X_train = poly(X, list(range(4)))
@@ -129,7 +131,7 @@ plt.grid()
 plt.show()
 
 
-# In[577]:
+# In[4]:
 
 
 X_train = poly(X, list(range(7)))
@@ -170,11 +172,17 @@ plt.show()
 # 3. Have you experienced [overfitting](https://en.wikipedia.org/wiki/Overfitting)?
 # 4. Please, read [this article](https://en.wikipedia.org/wiki/VC_dimension) to learn more about model capacity and VC-dimension.
 
-# In[578]:
+# In[5]:
 
 
 def MSE(y_pred, y_stand):
     return ((y_pred - y_stand)**2).mean()
+
+X = np.abs(np.random.normal(6, 7.5, size=(20, 1)))
+y_train = np.sin(X) + noise
+X_train = poly(X, list(range(7)))
+w = lin_regression(X_train, y_train)
+y_pred = X_train.dot(w)
 
 X_valid = np.random.uniform(0, 2 * PI, size=(20, 1))
 X_valid_poly = poly(X_valid, list(range(7)))
@@ -220,7 +228,7 @@ print("MSE on validation set is %f"%MSE(y_pred_val, y_valid))
 # Last equality follows from monotone of logarithm.
 # $$= \arg \max \limits_{w} \sum \limits_{y_i, X_i} \ln \mathbb{P}(y_i\ |\ X_i) = \arg \max \limits_{w} \sum \limits_{y_i, X_i} \ln ((1 + \exp(-yw^Tx))^{-1}) = -\arg \max \limits_{w} \sum \limits_{y_i, X_i} \ln (1 + \exp(-yw^Tx)) = \arg \min \limits_{w} \sum \limits_{y_i, X_i} \ln (1 + \exp(-yw^Tx))$$
 
-# In[579]:
+# In[6]:
 
 
 M = np.linspace(-2, 2, 800)
@@ -233,7 +241,7 @@ plt.grid()
 plt.show()
 
 
-# In[580]:
+# In[7]:
 
 
 blob_1 = np.random.normal([10, 10], 7, size=(100, 2))
@@ -244,7 +252,7 @@ plt.grid()
 plt.show()
 
 
-# In[581]:
+# In[8]:
 
 
 X_train = np.concatenate((blob_1, blob_2), axis=0)
@@ -284,9 +292,17 @@ plt.show()
 # 5. How do you choose $\lambda$?
 # 6. Evaluate time complexity of solution.
 
-# We will use  $f(x, y) = 5(x - 2)^2 + 4(y + 5)^2$ with minumum in $(2, 5)$.
+# We will use  $$f(x, y) = 5(x - 2)^2 + 4(y + 5)^2$$ with minumum in $(2, 5)$.
+# Gradient is
+# $$
+# \nabla f(x,y) = 
+# \begin{pmatrix}
+# 10x - 20 \\
+# 8y + 40
+# \end{pmatrix}
+# $$
 
-# In[654]:
+# In[9]:
 
 
 def apl(pnt, func, vectorwise=False, *args):
@@ -295,7 +311,7 @@ def apl(pnt, func, vectorwise=False, *args):
     return func(*pnt, *args)
 
 
-# In[655]:
+# In[10]:
 
 
 def naive_grad_descent(func, 
@@ -320,23 +336,23 @@ def naive_grad_descent(func,
     return pnt, np.asarray(points)
 
 
-# In[719]:
+# In[12]:
 
 
-f = lambda x, y: 5 * (x - 2)**2 + 4 * (y + 5)**2
-df = lambda x, y: np.asarray([10 * (x - 2), 8 * (y + 5)])
+f_quadr = lambda x, y: 5 * (x - 2)**2 + 4 * (y + 5)**2
+df_quadr = lambda x, y: np.asarray([10 * (x - 2), 8 * (y + 5)])
 
-min_pnt, trace = naive_grad_descent(f, 
-                                    df, 
+min_pnt, trace = naive_grad_descent(f_quadr, 
+                                    df_quadr, 
                                     start_pnt=np.random.uniform(0, 5, size=(2,)), 
                                     lmbda=lambda step: 0.05)
 
-print("f_min = %f in (%f, %f)"%(f(*min_pnt), *min_pnt))
+print("f_min = %f in (%f, %f)"%(f_quadr(*min_pnt), *min_pnt))
 
 x = np.arange(-7, 7, 0.25)
 y = np.arange(-7, 7, 0.25)
 x, y = np.meshgrid(x, y)
-z = f(x, y)
+z = f_quadr(x, y)
 plt.contourf(x, y, z, 30)
 plt.plot(trace[:, 0], trace[:, 1], 'r-o')
 plt.show()
@@ -352,19 +368,27 @@ plt.show()
 # 2. What problem do you face?
 # 3. Is there any solution?
 
-# In[617]:
+# $$
+# \nabla f(x, y) = 
+# \begin{pmatrix}
+# 2(1 - x) - 400(y - x^2)x \\
+# 200(y - x^2)
+# \end{pmatrix}
+# $$
+
+# In[13]:
 
 
 f_rosen = lambda x, y: (1 - x)**2 + 100 * (y - x**2)**2
 df_rosen = lambda x, y: np.asarray([-2 * (1 - x) - 400 * (y - x**2) * x, 200 * (y - x**2)])
 
 
-# In[618]:
+# In[18]:
 
 
 min_pnt_rosen, trace_rosen = naive_grad_descent(f_rosen, 
                                                 df_rosen, 
-                                                start_pnt=np.random.uniform(-2, 2, size=(2,)), 
+                                                start_pnt=np.random.uniform(-4, 4, size=(2,)), 
                                                 lmbda=lambda step: 0.001, 
                                                 max_step=2 * 1e5,
                                                 eps=1e-8)
@@ -372,7 +396,7 @@ min_pnt_rosen, trace_rosen = naive_grad_descent(f_rosen,
 print("f_min = %f in (%f, %f)"%(f_rosen(*min_pnt_rosen), *min_pnt_rosen))
 
 
-# In[620]:
+# In[19]:
 
 
 x = np.arange(-5, 5, 0.25)
@@ -380,7 +404,7 @@ y = np.arange(-5, 5, 0.25)
 x, y = np.meshgrid(x, y)
 z = f_rosen(x, y)
 plt.contourf(x, y, z, 30)
-plt.plot(trace_rosen[:, 0], trace_rosen[:, 1], 'r-o')
+plt.plot(trace_rosen[:, 0], trace_rosen[:, 1], 'r')
 plt.show()
 
 print("It took algorithm %d steps to reach point (%f, %f)"%(trace_rosen.shape[0], *min_pnt_rosen))
@@ -397,7 +421,7 @@ print("It took algorithm %d steps to reach point (%f, %f)"%(trace_rosen.shape[0]
 # 3. Try steepest descent.
 # 4. Comare gradient descent methods and show its convergence in axes $[step \times Q]$.
 
-# In[625]:
+# In[30]:
 
 
 N_POINTS = 500
@@ -409,7 +433,7 @@ X_train = np.concatenate((X_train, np.ones((2 * N_POINTS, 1))), axis=1)
 y_train = np.concatenate((np.ones((N_POINTS, 1)), -1 * np.ones((N_POINTS, 1))), axis=0)
 
 
-# In[626]:
+# In[31]:
 
 
 plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
@@ -418,7 +442,7 @@ plt.grid()
 plt.show()
 
 
-# In[657]:
+# In[32]:
 
 
 w = lin_regression(X_train, y_train)
@@ -427,36 +451,37 @@ x = np.linspace(-3, 3, 100)
 y_an_mse = (-a * x - c) / b
 
 
-# In[658]:
+# In[33]:
 
 
 def gen_mse(X_train, y_train):
-    return lambda a, b, c: ((X_train.dot(np.asarray([a, b, c])).reshape(2 * N_POINTS, 1) - y_train)**2).mean()
+    return lambda pnt: ((X_train.dot(pnt) - y_train)**2).mean()
 
 
 def gen_gr_mse(X, y):
-    return lambda a, b, c: 2 * X.T.dot((X.dot(np.asarray([a, b, c])).reshape(2 * N_POINTS, 1) - y)).reshape(3,)
+    return lambda pnt: 2 * X.T.dot((X.dot(pnt) - y))
 
 
 f_mse = gen_mse(X_train, y_train)
 df_mse = gen_gr_mse(X_train, y_train)
 
 
-# In[659]:
+# In[34]:
 
 
-st_pnt = 10 * np.random.randn(3)
+st_pnt = 10 * np.random.randn(3).reshape(-1, 1)
 min_pnt_mse, trace_mse = naive_grad_descent(f_mse, 
                                             df_mse, 
                                             start_pnt=st_pnt, 
                                             lmbda=lambda step: 1e-4, 
+                                            vecwise=True,
                                             max_step=150,
                                             eps=1e-3)
 
-print("f_min = %f in (%f, %f, %f)"%(f_mse(*min_pnt_mse), *min_pnt_mse))
+print("f_min = %f in (%f, %f, %f)"%(f_mse(min_pnt_mse), *min_pnt_mse))
 
 
-# In[660]:
+# In[35]:
 
 
 a_gr, b_gr, c_gr, = min_pnt_mse
@@ -465,15 +490,15 @@ y_gr_mse = (-a_gr * x - c_gr) / b_gr
 plt.plot(x, y_an_mse, 'y', label='Analytical solution')
 plt.plot(x, y_gr_mse, 'g', label='Naive gradient solution')
 
-plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
-plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b')
+plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r', alpha=0.7)
+plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b', alpha=0.7)
 
 plt.legend()
 plt.grid()
 plt.show()
 
 
-# In[661]:
+# In[36]:
 
 
 def fast_grad(func, 
@@ -498,17 +523,18 @@ def fast_grad(func,
     return pnt, np.asarray(points)
 
 
-# In[662]:
+# In[37]:
 
 
 min_pnt_fast, trace_fast = fast_grad(f_mse, 
                                      df_mse, 
-                                     start_pnt=st_pnt, 
+                                     start_pnt=st_pnt,
+                                     vecwise=True,
                                      max_step=150,
                                      eps=1e-8)
 
 
-# In[663]:
+# In[38]:
 
 
 a_fast, b_fast, c_fast = min_pnt_fast
@@ -518,8 +544,8 @@ plt.plot(x, y_an_mse, 'y', label='Analytical')
 plt.plot(x, y_gr_mse, 'g', label='Naive gradient')
 plt.plot(x, y_gr_fast, 'b', label='Steepest gradient')
 
-plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r')
-plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b')
+plt.scatter(blob_1[:, 0], blob_1[:, 1], color='r', alpha=0.7)
+plt.scatter(blob_2[:, 0], blob_2[:, 1], color='b', alpha=0.7)
 
 plt.legend()
 plt.grid()
@@ -528,17 +554,17 @@ plt.show()
 
 # As we see perfomance of steepest descent has the same precision as analytical solution, however naive gradient descent is less precise.
 
-# In[667]:
+# In[39]:
 
 
-f_mse_val = list(map(lambda pnt: f_mse(*pnt), trace_mse))
-f_fast_val = list(map(lambda pnt: f_mse(*pnt), trace_fast))
+f_mse_val = list(map(lambda pnt: f_mse(pnt), trace_mse))
+f_fast_val = list(map(lambda pnt: f_mse(pnt), trace_fast))
 
 plt.plot(range(trace_mse.shape[0]), f_mse_val, label='Naive gradient')
 plt.plot(range(trace_fast.shape[0]), f_fast_val, label='Steepest gradient')
 plt.legend()
 plt.xlabel('Step')
-plt.ylabel(;)
+plt.ylabel('Loss')
 plt.grid()
 plt.show()
 
@@ -558,13 +584,13 @@ plt.show()
 # 6. How many epochs you use? Why?
 # 7. Plot value of loss function for each step (try use [exponential smoothing](https://en.wikipedia.org/wiki/Exponential_smoothing)).
 
-# In[228]:
+# In[40]:
 
 
 data = np.loadtxt("../train.csv", delimiter=',', skiprows=1)
 
 
-# In[229]:
+# In[41]:
 
 
 data_0_1 = data[data[:, 0] < 2, :]
@@ -577,18 +603,28 @@ dig_X_train, dig_X_test, dig_y_train, dig_y_test = train_test_split(data_0_1[:, 
                                                                     random_state=42)
 
 
-# In[504]:
+# In[42]:
 
 
 def log_loss(w, X, y):
-    return sum(np.log(1 + np.exp(-y[i] * X[i].dot(w))) for i in range(X.shape[0])) / X.shape[0]
+    loss = 0.0
+    for i in range(X.shape[0]):
+        deg = -y[i] * X[i].dot(w)
+        if deg > 20:
+            loss += deg
+        else:
+            loss += np.log(1 + np.exp(deg))
+    return np.sum(loss) / X.shape[0]
 
 
 def log_deriv(w, X, y):
     grad = np.zeros(X.shape)
     for i in range(X.shape[0]):
-        deg = -y[i] * np.dot(X[i], w)
-        grad[i] = -y[i] * X[i] * (np.exp(deg) / (1 + np.exp(deg)))
+        deg = -y[i] * X[i].dot(w)
+        if deg > 20:
+            grad[i] = -y[i] * X[i]
+        else:
+            grad[i] = -y[i] * X[i] * (np.exp(deg) / (1 + np.exp(deg)))
     grad = np.sum(grad, axis=0) / X.shape[0]
     return grad.reshape(-1, 1)
 
@@ -601,8 +637,7 @@ def sgd(func,
         lmbda,
         batch_size=1,
         vecwise=False, 
-        max_step=1e3, 
-        eps=1e-12):
+        epochs=10):
     
     pnt = np.copy(start_pnt)
     points = []
@@ -610,10 +645,8 @@ def sgd(func,
     it_per_batch = X.shape[0] // batch_size
     
     step = 0
-    while (step == 0 or abs(apl(points[-1], func, vecwise, X, y) - apl(points[-2], func, vecwise, X, y)) >= eps)     and step <= max_step:
+    for i in range(epochs):
         for j in range(it_per_batch):
-            if not ((step == 0 or abs(apl(points[-1], func, vecwise, X, y) - apl(points[-2], func, vecwise, X, y)) >= eps)     and step <= max_step):
-                break
             step += 1
             X_tmp = X[j * batch_size: (j + 1) * batch_size]
             y_tmp = y[j * batch_size: (j + 1) * batch_size]
@@ -628,28 +661,27 @@ def classify(X, w):
     return np.sign(X.dot(w))
 
 
-# In[505]:
+# In[43]:
 
 
-min_sgd, trace_sgd = sgd(log_loss, 
-                         log_deriv,
-                         np.zeros((dig_X_train.shape[1], 1)),
-                         dig_X_train,
-                         dig_y_train,
-                         1e-2,
-                         vecwise=True,
-                         batch_size=1000,
-                         max_step=30)
+min_sgd, trace_sgd_200 = sgd(log_loss, 
+                           log_deriv,
+                           np.zeros((dig_X_train.shape[1], 1)),
+                           dig_X_train,
+                           dig_y_train,
+                           1e-2,
+                           vecwise=True,
+                           batch_size=200)
 
 
-# In[506]:
+# In[44]:
 
 
 print("Accuracy on train %f"%accuracy(classify(dig_X_train, min_sgd), dig_y_train))
 print("Accuracy on test %f"%accuracy(classify(dig_X_test, min_sgd), dig_y_test))
 
 
-# In[235]:
+# In[45]:
 
 
 step_num = []
@@ -662,13 +694,13 @@ for sz in range(1, dig_X_train.shape[0], 100):
                              dig_y_train,
                              1e-2,
                              vecwise=True,
-                             batch_size=sz,
-                             max_step=10)
+                             batch_size=sz)
+    
     step_num.append(trace_sgd.shape[0])
     accur_p_batch.append(accuracy(classify(dig_X_test, min_sgd), dig_y_test))
 
 
-# In[236]:
+# In[46]:
 
 
 plt.plot(range(101, dig_X_train.shape[0], 100), step_num[1:], 'r-')
@@ -678,7 +710,7 @@ plt.grid()
 plt.show()
 
 
-# In[237]:
+# In[47]:
 
 
 plt.plot(range(1, dig_X_train.shape[0], 100), accur_p_batch, 'b')
@@ -688,28 +720,32 @@ plt.grid()
 plt.show()
 
 
-# In[238]:
+# In[48]:
 
 
-min_sgd, trace_sgd = sgd(log_loss, 
-                         log_deriv,
-                         np.zeros((dig_X_train.shape[1], 1)),
-                         dig_X_train,
-                         dig_y_train,
-                         1e-2,
-                         vecwise=True,
-                         batch_size=200,
-                         max_step=10)
+calc_loss = lambda pnt: log_loss(pnt, dig_X_train, dig_y_train)
 
-log_vals = list(map(lambda pnt: log_loss(dig_X_train, dig_y_train, pnt), trace_sgd))
-
-
-# In[239]:
-
-
-plt.plot(log_vals, 'r')
+log_vals_200 = np.asarray(list(map(calc_loss, trace_sgd_200)))
+plt.plot(log_vals_200, 'g', label='200')
 plt.xlabel("Steps", fontsize=13)
 plt.ylabel("Loss", fontsize=13)
+plt.legend(title='Batch size')
+plt.grid()
+
+
+# In[49]:
+
+
+def exp_smoothing(series, alpha):
+    smoothed = [series[0]]
+    for i in range(1, series.shape[0]):
+        smoothed.append(alpha * series[i] + (1 - alpha) * smoothed[i - 1])
+    return smoothed
+
+plt.plot(exp_smoothing(log_vals_200, 0.15), 'g')
+plt.xlabel("Steps", fontsize=13)
+plt.ylabel("Loss", fontsize=13)
+plt.title("Loss/Step plot with exponential smoothing")
 plt.grid()
 
 
@@ -722,7 +758,7 @@ plt.grid()
 # 2. Use momentum method and compare pathes.
 # 3. How do you choose $\gamma$?
 
-# In[316]:
+# In[50]:
 
 
 def grad_momentum(func, 
@@ -746,7 +782,7 @@ def grad_momentum(func,
     return pnt, np.asarray(points)
 
 
-# In[317]:
+# In[51]:
 
 
 def quadratic(x, y):
@@ -757,7 +793,7 @@ def grad_quadr(x, y):
     return np.asarray([20 * x, 2 * y])
 
 
-# In[318]:
+# In[52]:
 
 
 x = y = np.linspace(-15, 15, 1000)
@@ -795,7 +831,7 @@ plt.show()
 # 1. Compare this method and previous with Rosenbrock function.
 # 2. Plot traces of both algorithms.
 
-# In[319]:
+# In[53]:
 
 
 def grad_nesterov(func, 
@@ -819,7 +855,7 @@ def grad_nesterov(func,
     return pnt, np.asarray(points)
 
 
-# In[322]:
+# In[78]:
 
 
 start_point = np.random.randn(2) * 10
@@ -836,18 +872,22 @@ min_nest_ros, trace_nest_ros = grad_nesterov(f_rosen,
                                              lambda step: 0.00002,
                                              0.91)
 
+
+# In[80]:
+
+
 x = y = np.linspace(-10, 10, 1000)
 xx, yy = np.meshgrid(x, y)
 f = f_rosen(xx, yy)
 
 plt.contourf(xx, yy, f, 30)
-plt.plot(trace_mom_ros[:, 0], trace_mom_ros[:, 1], 'r-o', label='Momentum')
-plt.plot(trace_nest_ros[:, 0], trace_nest_ros[:, 1], 'g-o', label='Nesterov')
+plt.plot(trace_mom_ros[:, 0], trace_mom_ros[:, 1], 'r-', label='Momentum')
+plt.plot(trace_nest_ros[:, 0], trace_nest_ros[:, 1], 'g-', label='Nesterov')
 plt.legend()
 plt.show()
 
 
-# In[323]:
+# In[81]:
 
 
 OFFSET = 1000
@@ -884,7 +924,7 @@ plt.show()
 # 1. [Adadelta (2012)](https://arxiv.org/pdf/1212.5701.pdf)
 # 2. [Adam (2015)](https://arxiv.org/pdf/1412.6980.pdf)
 
-# In[753]:
+# In[82]:
 
 
 def adagrad(func, 
@@ -893,7 +933,7 @@ def adagrad(func,
             lmbda,
             vecwise=False,
             max_step=1e5,
-            eps=10e-8):
+            eps=10e-14):
     
     pnt = np.copy(start_pnt)
     points = [np.copy(pnt)]
@@ -982,26 +1022,24 @@ def adam(func,
     return pnt, np.asarray(points)
 
 
-# In[742]:
+# In[84]:
 
 
-start = np.random.randn(2) * 10
+start = np.asarray([10.0, 2.0])
 
 
-# In[745]:
+# In[120]:
 
 
-print(start)
-
-
-# In[754]:
-
+f = f_rosen
+df = df_rosen
 
 _, momentum_tr = grad_momentum(f,
                                df,
                                np.copy(start),
                                lambda step: 0.00002,
-                               0.91)
+                               0.91, 
+                               max_step=1e5)
 print('Momentum is done Steps %d. Point (%f, %f)'%(momentum_tr.shape[0], *momentum_tr[-1]))
 print('='*30)
 
@@ -1009,7 +1047,8 @@ _, nesterov_tr = grad_nesterov(f,
                                df,
                                np.copy(start),
                                lambda step: 0.00002,
-                               0.91)
+                               0.91, 
+                               max_step=1e5)
 
 print('Nesterov is done. Steps %d. Point (%f, %f)'%(nesterov_tr.shape[0], *nesterov_tr[-1]))
 print('='*30)
@@ -1017,7 +1056,8 @@ print('='*30)
 _, adagrad_tr = adagrad(f,
                         df,
                         np.copy(start),
-                        lambda step: 0.0000002)
+                        lambda step: 0.01,
+                        max_step=1e5)
 
 print('Adagrad is done. Steps %d. Point (%f, %f)'%(adagrad_tr.shape[0], *adagrad_tr[-1]))
 print('='*30)
@@ -1025,8 +1065,9 @@ print('='*30)
 _, rmsprop_tr = RMSprop(f,
                         df,
                         np.copy(start),
-                        lambda step: 0.0000002,
-                        0.8)
+                        lambda step: 0.002,
+                        0.3, 
+                        max_step=1e5)
 
 print('RMSprop is done. Steps %d. Point (%f, %f)'%(rmsprop_tr.shape[0], *rmsprop_tr[-1]))
 print('='*30)
@@ -1050,24 +1091,40 @@ print('Adam is done. Steps %d. Point (%f, %f)'%(adam_tr.shape[0], *adam_tr[-1]))
 print('='*30)
 
 
-# In[774]:
+# In[121]:
+
+
+x = np.linspace(-12, 12, 1000)
+y = np.linspace(-2, 21, 1000)
+xx, yy = np.meshgrid(x, y)
+f_val = f(xx, yy)
+plt.contourf(xx, yy, f_val, 30, cmap='gist_heat')
+plt.plot(adagrad_tr[:, 0], adagrad_tr[:, 1])
+plt.plot(rmsprop_tr[:, 0], rmsprop_tr[:, 1])
+plt.plot(momentum_tr[:, 0], momentum_tr[:, 1])
+plt.plot(adadelta_tr[:, 0], adadelta_tr[:, 1])
+plt.plot(adam_tr[:, 0], adam_tr[:, 1])
+
+
+# In[122]:
 
 
 fig = plt.figure()
-ax = plt.axes(xlim=(0, 12), ylim=(-7, 5))
+ax = plt.axes(xlim=(-12, 12), ylim=(-2, 21))
 
-x = np.linspace(0, 12)
-y = np.linspace(-7, 5, 1000)
+x = np.linspace(-12, 12, 1000)
+y = np.linspace(-2, 21, 1000)
 xx, yy = np.meshgrid(x, y)
 f_val = f(xx, yy)
-plt.contourf(xx, yy, f_val, 30)
+plt.contourf(xx, yy, f_val, 30, cmap='gist_heat')
 
-momentum_l, = ax.plot([], [], 'r', lw=2, label='Momentum')
-nesterov_l, = ax.plot([], [], 'g', lw=2, label='Nesterov')
-adagrad_l, = ax.plot([], [], 'b', lw=2, label='Adagrad')
-rmsprop_l, = ax.plot([], [], 'y', lw=2, label='RMSprop')
-adadelta_l, = ax.plot([], [], 'm', lw=2, label='Adadelta')
-adam_l, = ax.plot([], [], 'w', lw=2, label='Adam')
+alph = 1.0
+momentum_l, = ax.plot([], [], 'r', lw=2, alpha=alph, label='Momentum')
+nesterov_l, = ax.plot([], [], 'g', lw=2, alpha=alph, label='Nesterov')
+adagrad_l, = ax.plot([], [], 'b', lw=2, alpha=alph, label='Adagrad')
+rmsprop_l, = ax.plot([], [], 'y', lw=2, alpha=alph, label='RMSprop')
+adadelta_l, = ax.plot([], [], 'm', lw=2,alpha=alph, label='Adadelta')
+adam_l, = ax.plot([], [], 'w', lw=2, alpha=alph, label='Adam')
 plt.legend()
 
 lines = [momentum_l,
@@ -1094,18 +1151,22 @@ def init():
 # animation function.  This is called sequentially
 def animate(i):
     for l, tr in zip(lines, traces):
-        l.set_data(tr[0:min(10 * i, tr.shape[0]), 0], tr[0:min(10 * i, tr.shape[0]), 1])
+        print('Frame %d'%i)
+        clear_output()
+        times = i * 25
+            
+        l.set_data(tr[0:min(times, tr.shape[0]), 0], tr[0:min(times, tr.shape[0]), 1])
     return lines
 
 # call the animator.  blit=True means only re-draw the parts that have changed.
 anim = animation.FuncAnimation(fig, animate, init_func=init,
-                               frames=1000, interval=20, blit=True)
+                               frames=4000, interval=20, blit=True)
 
-anim.save('animation.mp4', fps=120)
+anim.save('animation.mp4', fps=30)
 plt.show()
 
 
-# In[528]:
+# In[156]:
 
 
 full_log_loss = lambda pnt : log_loss(pnt, dig_X_train, dig_y_train)
@@ -1117,24 +1178,24 @@ min_adam_mnist, trace_adam_mnist = adam(full_log_loss,
                                         vecwise=True)
 
 
-# In[529]:
+# In[157]:
 
 
 print("Accuracy on train %f"%accuracy(classify(dig_X_train, min_adam_mnist), dig_y_train))
 print("Accuracy on test %f"%accuracy(classify(dig_X_test, min_adam_mnist), dig_y_test))
 
 
-# In[531]:
+# In[158]:
 
 
 adam_loss = list(map(lambda pnt: full_log_loss(pnt), trace_adam_mnist))
 
 
-# In[535]:
+# In[159]:
 
 
 plt.plot(adam_loss)
-plt.title('Adam\'s Logloss')
+plt.title('Adam Logloss')
 plt.xlabel('Step')
 plt.ylabel('Loss')
 plt.grid()
