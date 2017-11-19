@@ -59,12 +59,14 @@
 # 4. Train linear model one more time and plot results again.
 # 5. What happens if you add more features, for example full range $x^{0},\dots,x^{7}$? 
 
-# In[109]:
+# In[173]:
 
 
 get_ipython().magic('matplotlib inline')
 
-from IPython.display import clear_output
+import io
+import base64
+from IPython.display import HTML, clear_output
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -733,7 +735,7 @@ plt.legend(title='Batch size')
 plt.grid()
 
 
-# In[49]:
+# In[166]:
 
 
 def exp_smoothing(series, alpha):
@@ -855,10 +857,10 @@ def grad_nesterov(func,
     return pnt, np.asarray(points)
 
 
-# In[78]:
+# In[199]:
 
 
-start_point = np.random.randn(2) * 10
+start_point = np.asarray([  7.96238231, -11.03829588])
 
 min_mom_ros, trace_mom_ros = grad_momentum(f_rosen,
                                            df_rosen,
@@ -873,10 +875,10 @@ min_nest_ros, trace_nest_ros = grad_nesterov(f_rosen,
                                              0.91)
 
 
-# In[80]:
+# In[201]:
 
 
-x = y = np.linspace(-10, 10, 1000)
+x = y = np.linspace(-12, 12, 1000)
 xx, yy = np.meshgrid(x, y)
 f = f_rosen(xx, yy)
 
@@ -887,7 +889,7 @@ plt.legend()
 plt.show()
 
 
-# In[81]:
+# In[202]:
 
 
 OFFSET = 1000
@@ -1164,6 +1166,17 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
 
 anim.save('animation.mp4', fps=30)
 plt.show()
+
+
+# In[174]:
+
+
+video = io.open('animation.mp4', 'r+b').read()
+encoded = base64.b64encode(video)
+HTML(data='''
+<video controls>
+    <source src="data:video/mp4;base64,{0}" type="video/mp4" />
+</video>'''.format(encoded.decode('ascii')))
 
 
 # In[156]:
