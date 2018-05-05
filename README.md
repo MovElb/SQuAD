@@ -24,7 +24,7 @@ Here you can find a series of laboratory works (jupyter notebook format), which 
 4. Data augmentation
 5. Modern architecture
 
-## 4. Word embeddings
+##### 4. Word embeddings
 1. LSA
 2. Word2Vec
 3. Glove
