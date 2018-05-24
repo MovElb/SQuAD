@@ -169,8 +169,7 @@ class EncoderBlock(nn.Module):
         super(EncoderBlock, self).__init__()
         self.convs = nn.ModuleList([DepthwiseSeparableConv(d_model, d_model, kern_sz) for _ in range(conv_num)])
         self.self_att = SelfAttention(n_heads, d_model)
-        self.W = torch.empty(batch_size, d_model, d_model, device=device, requires_grad=True)
-        nn.init.xavier_normal_(self.W)
+        self.W = torch.Linear(d_model, d_model).to(device)
         self.relu = nn.ReLU()
         self.dropout = p
 
@@ -193,7 +192,7 @@ class EncoderBlock(nn.Module):
         out = F.dropout(out, p=self.dropout, training=self.training)
         res = out
         out = norm(out)
-        out = torch.bmm(out, self.W)
+        out = self.W(out)
         out = self.relu(out)
         out = res + out
         out = F.dropout(out, p=self.dropout, training=self.training)
