@@ -5,7 +5,7 @@ A pytorch implementation of custom model for Stanford Question and Answering Dat
 <img src="img/model.png" width="500">
 
 ## Perfomance
-Model was trained for 25 epoch which took 7 hours on one Nvidia Tesla P100
+Model was trained for 25 epochs which took 7 hours on one Nvidia Tesla P100
 
 <img src="img/f1.png" width="500"> <img src="img/em.png" width="500">
 
