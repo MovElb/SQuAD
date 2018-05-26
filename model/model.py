@@ -81,11 +81,7 @@ class DocReaderModel(object):
         # Run forward
         score_s, score_e = self.network(*inputs)
 
-        # Compute loss and accuracies
-#         if not self.opt['qanet_tail']:
         loss = F.nll_loss(score_s, target_s) + F.nll_loss(score_e, target_e)
-#         else:
-#             loss = F.cross_entropy(score_s, target_s) + F.cross_entropy(score_e, target_e)
         self.train_loss.update(loss.item())
 
         # Clear gradients and run backward
