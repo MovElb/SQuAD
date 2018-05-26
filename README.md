@@ -20,7 +20,8 @@ Model was trained for 25 epochs which took 7 hours on one Nvidia Tesla P100
 Make sure that you installed python 3, pip, wget and unzip, [pytorch](http://pytorch.org/).
 
 ```bash
-git clone https://github.com/hitvoice/DrQA.git; cd DrQA
+git clone https://github.com/MovElb/SQuAD
+cd SQuAD
 pip3 install -r requirements.txt
 bash download.sh
 ```
