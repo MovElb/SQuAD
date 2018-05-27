@@ -43,7 +43,7 @@ sudo python3 train.py -e 25 -bs 32 --qanet_tail=True
 You can run model in interactive mode
 
 ```
-sudo python3 interact.py
+sudo python3 demo.py
 ```
 
 ## Telegram bot

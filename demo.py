@@ -50,8 +50,8 @@ while True:
     id_ = 0
     try:
         while True:
-            evidence = input('Evidence: ')
-            if evidence.strip():
+            text = input('Text: ')
+            if text.strip():
                 break
         while True:
             question = input('Question: ')
@@ -61,7 +61,7 @@ while True:
         break
     id_ += 1
     start_time = time.time()
-    annotated = annotate(('interact-{}'.format(id_), evidence, question), meta['wv_cased'])
+    annotated = annotate(('interact-{}'.format(id_), text, question), meta['wv_cased'])
     model_in = to_id(annotated, w2id, tag2id, ent2id)
     model_in = next(iter(BatchGen([model_in], batch_size=1, gpu=args.cuda, evaluation=True)))
     prediction = model.predict(model_in)[0]
