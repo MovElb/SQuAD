@@ -15,7 +15,7 @@ Model was trained for 25 epochs which took 7 hours on one Nvidia Tesla P100
 	pytorch 0.4
 	numpy
 	msgpack
-	spacy >=1.9
+	spacy <=1.9
 ### Setup
 Make sure that you installed python 3, pip, wget and unzip, [pytorch](http://pytorch.org/).
 
@@ -24,26 +24,37 @@ git clone https://github.com/MovElb/SQuAD
 cd SQuAD
 pip3 install -r requirements.txt
 bash download.sh
+python3 prepro.py
 ```
 
 ### Training
-As this implementation contains code from [DrQA](https://github.com/facebookresearch/DrQA), so by default mode training runs DrQA model. It can be trained by command
+To run this custom architecture run
 
-```
+```bash
+# Run training for 25 epochs with batch size 32
 sudo python3 train.py -e 25 -bs 32
 ```
 
-To run custom architecture add flag `--qanet_tail=True`, e.g.
+As this implementation contains code from [DrQA](https://github.com/facebookresearch/DrQA), so you can try out original DrQA model. It can be trained by adding flag `--qanet_tail=False`:
 
+```bash
+sudo python3 train.py -e 25 -bs 32 --qanet_tail=False
 ```
-sudo python3 train.py -e 25 -bs 32 --qanet_tail=True
-```
+
+
 
 ### Evalutation
-You can run model in interactive mode
+To check the score of the model run
 
 ```
-sudo python3 demo.py
+sudo python3 train.py --eval --model_dir=path/to/your/model 
+```
+Path of provided by default pretrained weights is `SQuAD/models/best_model.pt`.
+
+Also, you can run model in the interactive mode:
+
+```
+sudo python3 demo.py --model_dir=path/to/your/model
 ```
 
 ## Telegram bot
