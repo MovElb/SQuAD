@@ -35,7 +35,6 @@ opt['embedding_dim'] = embedding.size(1)
 opt['pos_size'] = len(meta['vocab_tag'])
 opt['ner_size'] = len(meta['vocab_ent'])
 opt['cuda'] = args.cuda
-opt['qa_net'] = False
 BatchGen.pos_size = opt['pos_size']
 BatchGen.ner_size = opt['ner_size']
 model = DocReaderModel(opt, embedding, state_dict)

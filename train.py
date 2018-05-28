@@ -163,7 +163,7 @@ def setup():
     
     # QANet params
     parser.add_argument('--qanet_tail', type=str2bool, nargs='?',
-                        const=True, default=False)
+                        const=True, default=True)
     parser.add_argument('--kernel_sz', type=int, default=5)
     parser.add_argument('--n_blocks', type=int, default=1)
     parser.add_argument('--conv_num', type=int, default=2)
