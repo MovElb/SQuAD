@@ -169,7 +169,7 @@ class EncoderBlock(nn.Module):
         super(EncoderBlock, self).__init__()
         self.convs = nn.ModuleList([DepthwiseSeparableConv(d_model, d_model, kern_sz) for _ in range(conv_num)])
         self.self_att = SelfAttention(n_heads, d_model)
-        self.W = torch.Linear(d_model, d_model).to(device)
+        self.W = nn.Linear(d_model, d_model).to(device)
         self.relu = nn.ReLU()
         self.dropout = p
 
@@ -227,7 +227,8 @@ class ContextQueryAttention(nn.Module):
                        Q_.unsqueeze(0).repeat(n, 1, 1, 1),
                        S], 
                       dim=-1)
-        S = self.W(S).squeeze().permute(2, 0, 1)
+
+        S = self.W(S).squeeze(dim=-1).permute(2, 0, 1)
         
         S_ = F.softmax(S, dim=2)
         S__ = F.softmax(S, dim=1)
@@ -249,8 +250,8 @@ class AnswerStartEnd(nn.Module):
     def forward(self, M0, M1, M2):
         cat_M01 = torch.cat([M0, M1], dim=-1)
         cat_M02 = torch.cat([M0, M2], dim=-1)
-        Y0 = self.W0(cat_M01).squeeze()
-        Y1 = self.W1(cat_M02).squeeze()
+        Y0 = self.W0(cat_M01).squeeze(dim=-1)
+        Y1 = self.W1(cat_M02).squeeze(dim=-1)
         
         if self.training:
             p1 = F.log_softmax(Y0, dim=1)

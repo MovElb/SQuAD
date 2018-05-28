@@ -10,8 +10,8 @@ from datetime import datetime
 from collections import Counter
 import torch
 import msgpack
-from drqa.model import DocReaderModel
-from drqa.utils import str2bool
+from model.model import DocReaderModel
+from model.utils import str2bool
 import random
 
 def main():
@@ -55,7 +55,10 @@ def main():
         best_val_score = f1
     else:
         best_val_score = 0.0
-
+        
+    if args.eval:
+        return
+        
     for epoch in range(epoch_0, epoch_0 + args.epochs):
         log.warning('Epoch {}'.format(epoch))
         # train
@@ -111,6 +114,8 @@ def setup():
                         const=True, default=torch.cuda.is_available(),
                         help='whether to use GPU acceleration.')
     # training
+    parser.add_argument('--eval', type=str2bool, nargs='?',
+                        const=True, default=False)
     parser.add_argument('-e', '--epochs', type=int, default=40)
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('-rs', '--resume', default='best_model.pt',

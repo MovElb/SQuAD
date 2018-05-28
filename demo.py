@@ -2,8 +2,8 @@ import time
 import argparse
 import torch
 import msgpack
-from drqa.model import DocReaderModel
-from drqa.utils import str2bool
+from model.model import DocReaderModel
+from model.utils import str2bool
 from prepro import annotate, to_id, init
 from train import BatchGen
 

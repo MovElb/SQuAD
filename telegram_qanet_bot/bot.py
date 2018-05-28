@@ -2,9 +2,9 @@ import config
 import telebot
 from prepro import annotate, to_id, init
 from model_init import init_model
-from train import BatchGen
+from SQuAD.train import BatchGen
 import argparse
-from drqa.utils import str2bool
+from SQuAD.model.utils import str2bool
 import torch
 import traceback
 

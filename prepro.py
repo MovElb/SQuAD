@@ -10,7 +10,7 @@ import multiprocessing
 from multiprocessing import Pool
 from tqdm import tqdm
 from functools import partial
-from drqa.utils import str2bool
+from model.utils import str2bool
 import logging
 
 

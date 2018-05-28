@@ -2,10 +2,10 @@ import time
 import argparse
 import torch
 import msgpack
-from drqa.model import DocReaderModel
-from drqa.utils import str2bool
+from SQuAD.model.model import DocReaderModel
+from SQuAD.model.utils import str2bool
 from prepro import annotate, to_id, init
-from train import BatchGen
+from SQuAD.train import BatchGen
 
 
 def init_model(args):
