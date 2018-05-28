@@ -23,7 +23,8 @@ def main():
 
     if args.resume:
         log.info('[loading previous model...]')
-        checkpoint = torch.load(os.path.join(args.model_dir, args.resume))
+        checkpoint = torch.load(os.path.join(args.model_dir, args.resume),
+         map_location="cuda" if torch.cuda.is_available() else "cpu")
         if args.resume_options:
             opt = checkpoint['config']
         state_dict = checkpoint['state_dict']
