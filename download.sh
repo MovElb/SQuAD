@@ -17,18 +17,22 @@ done
 # Download SQuAD & GloVe
 SQUAD_DIR=SQuAD
 GLOVE_DIR=glove
+MODEL_DIR=models
 mkdir -p $SQUAD_DIR
 mkdir -p $GLOVE_DIR
+mkdir -p $MODEL_DIR
 
 URLS=(
     "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json"
     "https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json"
     "http://nlp.stanford.edu/data/glove.840B.300d.zip"
+    "https://www.dropbox.com/s/dnk6covn7qql04k/best_model.pt?dl=1"
 )
 FILES=(
     "$SQUAD_DIR/train-v1.1.json"
     "$SQUAD_DIR/dev-v1.1.json"
     "$GLOVE_DIR/glove.840B.300d.zip"
+    "$MODEL_DIR/best_model.pt"
 )
 for ((i=0;i<${#URLS[@]};++i)); do
     file=${FILES[i]}
