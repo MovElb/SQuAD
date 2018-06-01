@@ -9,6 +9,8 @@ Model was trained for 25 epochs which took 7 hours on one Nvidia Tesla P100
 
 <img src="img/f1.png" width="500"> <img src="img/em.png" width="500">
 
+As can be noticed, current model's score is less than in original papers, however experiments have shown that more accurate selection of hyperparameters and adding EncoderBlocks from QANet can lead to a higher perfomance.
+
 ## Quick Start
 ### Requirements
 	python >=3.5
