@@ -34,13 +34,13 @@ To run this custom architecture run
 
 ```bash
 # Run training for 25 epochs with batch size 32
-sudo python3 train.py -e 25 -bs 32
+python3 train.py -e 25 -bs 32
 ```
 
 As this implementation contains code from [DrQA](https://github.com/facebookresearch/DrQA), so you can try out original DrQA model. It can be trained by adding flag `--qanet_tail=False`:
 
 ```bash
-sudo python3 train.py -e 25 -bs 32 --qanet_tail=False
+python3 train.py -e 25 -bs 32 --qanet_tail=False
 ```
 
 
@@ -49,14 +49,14 @@ sudo python3 train.py -e 25 -bs 32 --qanet_tail=False
 To check the score of the model run
 
 ```
-sudo python3 train.py --eval --model_dir=path/to/your/model 
+python3 train.py --eval --model_dir=path/to/your/model 
 ```
 Path of provided by default pretrained weights is `SQuAD/models/best_model.pt`.
 
 Also, you can run model in the interactive mode:
 
 ```
-sudo python3 demo.py --model_dir=path/to/your/model
+python3 demo.py --model-file=path/to/your/model
 ```
 
 ## Telegram bot
@@ -69,5 +69,5 @@ python3 pip install pyTelegramBotAPI
 To run telegram bot you need to train your model first, then edit telegram\_qanet_bot/config.py to change telegram bot token id. Then run it using command
 
 ```
-sudo python3 bot.py --model_file=your_model_path
+python3 bot.py --model_file=your_model_path
 ```
